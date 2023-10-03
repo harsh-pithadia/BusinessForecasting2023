@@ -1,0 +1,83 @@
+---
+title: "Assignement 1"
+author: "hp621@scarletmail.rutgers.edu"
+date: "9/21/2022"
+output: html_document
+---
+
+```{r}
+# Importing a Data Frame 
+
+```
+
+
+```{r}
+library(readxl)
+library("ggplot2")
+library(tidyverse)
+library(dplyr)
+file_path <- "C:\\Users\\HARSH\\Desktop\\RU\\BF\\week\\Typical_Employee_SurveyData.xlsx"
+df <- read_xlsx("C:\\Users\\HARSH\\Desktop\\RU\\BF\\week1\\Typical_Employee_SurveyData.xlsx")
+```
+
+
+```{r}
+## Q1)Adding header Rows to every column
+colnames(Typical_Employee_Survey_Data) <- c("Age", "Gender", "Job_Satisfaction", "Job_Characters", "WorkEx", "Promotion", "Decision_Making", "Budgetary_Decisions", "Proud", "RejectingnewJobs", "Relations")
+```
+
+
+```{r}
+
+##Q2)summary and boxplot (numerical columns) for each column
+min(Typical_Employee_Survey_Data$Age)
+max(Typical_Employee_Survey_Data$Age)
+mean(Typical_Employee_Survey_Data$Age)
+median(Typical_Employee_Survey_Data$Age)
+summary(Typical_Employee_Survey_Data$Age)
+boxplot(Typical_Employee_Survey_Data$Age)
+```
+
+
+```{r}
+##Q2)summary and boxplot (numerical columns) for each column
+min(Typical_Employee_Survey_Data$WorkEx)
+max(Typical_Employee_Survey_Data$WorkEx)
+mean(Typical_Employee_Survey_Data$WorkEx)
+median(Typical_Employee_Survey_Data$WorkEx)
+summary(Typical_Employee_Survey_Data$WorkEx)
+boxplot(Typical_Employee_Survey_Data$WorkEx)
+```
+```{r}
+##Q3)the columns that need to be converted to Factors
+
+Typical_Employee_Survey_Data <- Typical_Employee_Survey_Data %>%
+  mutate(
+     Job_Characters= factor(Job_Characters), 
+    Promotion = factor(Promotion),
+    Job_Satisfaction=factor(Job_Satisfaction),
+    
+    #Numeric columns that represent continuous variables, such as age, height, or weight, should remain as numeric data types.
+    RejectingnewJobs=factor(RejectingnewJobs)
+  )
+str(Typical_Employee_Survey_Data)
+    
+```
+
+```{r}
+##Q4)Plot the right visual for each column
+barplot(Typical_Employee_Survey_Data$WorkEx,main = "Work experience",xlab = "", ylab =  "No of years", col = "Blue", names.arg = Typical_Employee_Survey_Data$WorkEx)
+```
+```{r}
+##Q4)Plot the right visual for each column
+barplot(Typical_Employee_Survey_Data$Age,main = "Age",xlab = "No of age", ylab =  "No of years", col = "Red", names.arg = Typical_Employee_Survey_Data$Age)
+```
+```{r}
+## Q5)Plot scatter plots to show few relationships
+plot(Typical_Employee_Survey_Data$Age, Typical_Employee_Survey_Data$WorkEx, main="Scatter Plot", xlab="Age", ylab="WorkEx")
+plot(Typical_Employee_Survey_Data$Age, Typical_Employee_Survey_Data$Gender, main="Scatter Plot", xlab="Age", ylab="Gender")
+plot(Typical_Employee_Survey_Data$Age, Typical_Employee_Survey_Data$Job_Satisfaction, main="Scatter Plot", xlab="Age", ylab="Job_Satisfaction")
+plot(Typical_Employee_Survey_Data$Promotion, Typical_Employee_Survey_Data$WorkEx, main="Scatter Plot", xlab="Promotion", ylab="WorkEx")
+
+```
+
