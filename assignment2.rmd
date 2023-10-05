@@ -1,0 +1,30 @@
+---
+title: "Assignement 2"
+author: "hp621@scarletmail.rutgers.edu"
+date: "10/04/2022"
+output: html_document
+---
+```{r}
+#Detailed description of the data
+##
+## [Henry Hubs Natural Gas spots price (1997-2020)Monthly]
+##
+## Variable   |Variable_Name |Measurement_Unit | Allowed_Unit  | Description
+##
+## Date       |Date          |YYYY-MM          |1997-2020/1-12 | This represents month and 
+##            |              |                 |               | year for which natural gas
+##            |              |                 |               | is recorded
+##
+## Rate of    |Price         |Number           | 0.00-100.00   |This represents the price o 
+## Naturalgas |              |                 |               | natural gas for correspond-
+##            |              |                 |               | -ing month and year
+```
+```{r}
+##Data Collection Methodology 
+## The data collection is done by API provided by the United States Energy Information Administration. It is time series data distributed monthly from 1997 till 2020 and main attribute is related with the price of the natural gas. 
+```
+```{r}
+##Why does this data set intrigue you
+###Dataset is about the natural gas costing, Thinking of production of heating and electricity caused by natural gas we can forecast the future value and need of the natural gas. This can also help to know which companies going to invest more in this field also good forecast can benefit variety of stakeholders, including governments, energy companies, investors, and consumers. This dataset intrude me as the gas is one of important resource found in the nature and its forecast will be beneficial in various sector.
+```
+
