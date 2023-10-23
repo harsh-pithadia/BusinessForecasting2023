@@ -1,0 +1,158 @@
+---
+  title: "Assignement 4"
+  author: "hp621@scarletmail.rutgers.edu"
+  date: "10/04/2022"
+  output: html_document
+---
+
+```{r}
+#Importing Data set and view data set
+
+library(readxl)
+HH_NatrualGAS <- read_excel("C:/Users/HARSH/Desktop/RU/BF/assignment4/HH_NatrualGAS.xlsx", 
+    col_types = c("date", "numeric"))
+View(HH_NatrualGAS)
+```
+
+```{r}
+#we use these libraries for forecasting and modelling
+library(fpp)
+library(fpp2)
+library(forecast)
+library(xts)
+library(TTR) 
+```
+
+```{r}
+##
+
+class(HH_NatrualGAS)  #The dat set is in tibble(default) table 
+HH_NatrualGAS
+#We convert into time series object
+ts_data <- ts(HH_NatrualGAS$Date, start = c(1997, 01),end = c(2020,12), frequency = 12)
+
+summary(HH_NatrualGAS)
+
+dim(HH_NatrualGAS)  #[1] 288   2
+colnames(HH_NatrualGAS)  #[1] "Date"  "Price"
+
+
+```
+
+```{r}
+attributes(HH_NatrualGAS)
+Acf(HH_NatrualGAS)
+
+plot(HH_NatrualGAS)
+
+Acf(HH_NatrualGAS[,"Date"])
+Acf(HH_NatrualGAS[,"Price"])
+
+
+```
+
+```{r}
+#Plot the time series graph
+df.ts_Date <- ts((HH_NatrualGAS[,"Date"]), frequency = 12, start = c(1997,1))
+df.ts_Date
+plot.ts(df.ts_Date,main = "Timeseries", col = "blue")
+
+
+df.ts_Price <- ts((HH_NatrualGAS[,"Price"]), frequency = 12, start = c(1997,1))
+df.ts_Price
+plot.ts(df.ts_Price,main = "Timeseries", col = "blue")
+```
+
+```{r}
+#take Mean of all available history
+mean_forecast <- meanf(df.ts_Price,5)
+
+plot(mean_forecast)
+
+```
+
+```{r}
+# Naive forecast
+naive_forecast <- naive(df.ts_Price,5)
+plot(naive_forecast)
+
+# Random Walk
+rwf_forecast <- rwf(df.ts_Price,5)
+rwf_forecast <- rwf(df.ts_Price,5, drift=TRUE)
+plot
+
+# Seasonal Naive
+snaive_forecast <- snaive(df.ts_Price,5)
+```
+
+```{r}
+# Moving Averages
+MA5_forecast <- ma(df.ts_Price,order=5)
+MA9_forecast <- ma(df.ts_Price,order=9)
+
+
+```
+
+```{r}
+# plot the time series and different model forecasts
+plot(mean_forecast)
+lines(naive_forecast$mean,col="red")
+plot(rwf_forecast)
+lines(rwf_forecast$mean,col="green")
+plot(snaive_forecast)
+lines(snaive_forecast$mean,col="purple")  
+plot(MA5_forecast)
+lines(MA5_forecast,col="Pink")
+plot(MA9_forecast)
+lines(MA9_forecast,col="Blue")
+```
+
+```{r}
+attributes(naive_forecast)
+```
+
+```{r}
+#decomposition
+ets_forecast <- ets(df.ts_Price)
+plot(ets_forecast)
+attributes(ets_forecast)
+ets_forecast$mse
+
+
+# Decomposition of additive time series...
+df_decompose_Price <- decompose(df.ts_Price, type = "additive")
+plot(df_decompose_Price)
+```
+
+```{r}
+forecast_ets_1 <- forecast.ets(ets_forecast, h=5)
+plot(forecast_ets_1)
+forecast_ets_2 <- forecast(ets_forecast, h=5)
+plot(forecast_ets_2)
+
+
+```
+
+```{r}
+HW_forecast <- HoltWinters(df.ts_Price)
+plot(HW_forecast)
+SSE_Simple <- HoltWinters(df.ts_Price,beta=FALSE,gamma=FALSE)
+attributes(SSE_Simple)
+plot(SSE_Simple)
+SSE_Simple$SSE # [1] 154.6031
+head(SSE_Simple$fitted)
+```
+
+```{r}
+#Comparing the forecasting models using accuracy measure and stating the best model based on the accuracy comparison
+
+accuracy(naive_forecast)
+accuracy(rwf_forecast)
+accuracy(ets_forecast)
+```
+
+```{r}
+#Ets forecast is most accurate as it is closer to zero than other forecast
+
+
+```
