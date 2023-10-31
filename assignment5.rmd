@@ -1,0 +1,84 @@
+---
+title: "Assignment 5"
+author: "hp621@scaretletmail.rutgers.edu"
+date: "10/28/2022"
+output: html_document
+---
+```{r}
+#Importing Data set and view data set
+
+library(readxl)
+HH_NatrualGAS <- read_excel("C:/Users/HARSH/Desktop/RU/BF/assignment4/HH_NatrualGAS.xlsx", 
+    col_types = c("date", "numeric"))
+View(HH_NatrualGAS)
+```
+
+```{r}
+#we use these libraries for Decomposition
+library(fpp)
+library(fpp2)
+library(UsingR)
+library(xts)
+library(TTR) 
+```
+```{r}
+#Check your dataset in time series
+head(HH_NatrualGAS)
+plot(HH_NatrualGAS)
+ts_data <- ts(HH_NatrualGAS$Price, start = c(1997, 01),end = c(2020,12), frequency = 12)
+summary(HH_NatrualGAS)
+
+```
+```{r}
+#perform seasonal decomposition STL
+stl_decomp <- stl(ts_data,s.window ="periodic")
+#plot the decomposed components
+plot(stl_decomp)
+#print attributes of the decomposition
+attributes(stl_decomp)
+```
+
+```{r}
+# Lets print out a seasonal adjustment
+seasadj(stl_decomp)
+# Plot a line on the graph
+plot(ts_data)
+lines(seasadj(stl_decomp), col="Red")
+
+
+```
+```{r}
+# Default period forecast
+f_stl <- forecast(stl_decomp)
+# you can pass the # of period
+f_stl <- forecast(stl_decomp,h=15)
+f_stl
+plot(f_stl)
+```
+
+```{r}
+# There is more than one way to do things
+decomp_ts_data <- decompose(ts_data)
+
+# Each one shows different attributes 
+attributes(decomp_ts_data)
+seasadj(decomp_ts_data)
+```
+####
+Data Loading:
+You first load the necessary libraries, read the time series data from an Excel file, and view the data.
+
+Check Time Series Data:
+You examine the first few rows of the data and create a time series object (ts_data) with a specified start and end date and a frequency of 12 (monthly data). You also print a summary of the dataset.
+
+Seasonal Decomposition (STL):
+You perform seasonal decomposition using the stl function. The stl_decomp object contains the decomposed components of the time series, including seasonal, trend, and remainder components. You plot the decomposed components for visualization.
+
+Seasonal Adjustment:
+You print the seasonal adjustment using the seasadj function on the stl_decomp. Then, you overlay the seasonal adjustment on the original time series plot.
+
+Forecasting:
+You generate forecasts using the forecast function on the stl_decomp. The first forecast is created with the default number of periods, and the second one is created with a specific number of periods (15 in this case). You also plot the forecasted values.
+
+Alternative Decomposition:
+You perform another decomposition using the decompose function on the ts_data. This results in a different decomposition, and you check the attributes of the decomposed data and print the seasonal adjustment.
