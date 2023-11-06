@@ -1,0 +1,90 @@
+---
+title: "Assignement 1"
+author: "hp621@scarletmail.rutgers.edu"
+date: "9/21/2022"
+output: html_document
+---
+
+
+```{r}
+# Importing a Data Frame 
+library(readxl)
+library("ggplot2")
+library(tidyverse)
+
+
+Typical_Employee_SurveyData <- read_excel("C:\\Users\\HARSH\\Desktop\\RU\\BF\\week1\\Typical_Employee_SurveyData.xlsx")
+file_path <- "C:\\Users\\HARSH\\Desktop\\RU\\BF\\week1\\Typical_Employee_SurveyData.xlsx"
+View(Typical_Employee_SurveyData)
+```
+
+
+```{r}
+## Q1)Adding header Rows to every column
+colnames(Typical_Employee_SurveyData) <- c("Age", "Gender", "Job_Satisfaction", "Job_Characters", "WorkEx", "Promotion", "Decision_Making", "Budgetary_Decisions", "Proud", "RejectingnewJobs", "Relations")
+```
+
+
+```{r}
+
+##Q2)summary and boxplot (numerical columns) for each column
+min(Typical_Employee_SurveyData$Age)
+max(Typical_Employee_SurveyData$Age)
+mean(Typical_Employee_SurveyData$Age)
+median(Typical_Employee_SurveyData$Age)
+summary(Typical_Employee_SurveyData$Age)
+boxplot(Typical_Employee_SurveyData$Age)
+```
+
+
+```{r}
+##Q2)summary and boxplot (numerical columns) for each column
+min(Typical_Employee_SurveyData$WorkEx)
+max(Typical_Employee_SurveyData$WorkEx)
+mean(Typical_Employee_SurveyData$WorkEx)
+median(Typical_Employee_SurveyData$WorkEx)
+summary(Typical_Employee_SurveyData$WorkEx)
+boxplot(Typical_Employee_SurveyData$WorkEx)
+```
+```{r}
+##Q3)the columns that need to be converted to Factors
+
+##Q3)the columns that need to be converted to Factors
+
+Typical_Employee_SurveyData <- Typical_Employee_SurveyData %>%
+  mutate(
+     Gender=factor(Gender),
+     Job_Characters= factor(Job_Characters), 
+    Promotion = factor(Promotion),
+    Job_Satisfaction=factor(Job_Satisfaction),
+    Decision_Making=factor(Decision_Making),
+    Budgetary_Decisions=factor(Budgetary_Decisions),
+    Proud=factor(Proud),
+    Relations=factor(Relations),
+    
+    #Numeric columns that represent continuous variables, such as age, height, or weight, should remain as numeric data types.
+    RejectingnewJobs=factor(RejectingnewJobs)
+   
+  )
+str(Typical_Employee_SurveyData)
+    
+```
+
+```{r}
+##Q4)Plot the right visual for each column
+hist(Typical_Employee_SurveyData$WorkEx,main = "Work experience",xlab = "", ylab =  "No of years", col = "Blue", names.arg = Typical_Employee_SurveyData$WorkEx)
+```
+```{r}
+##Q4)Plot the right visual for each column
+hist(Typical_Employee_SurveyData$Age,main = "Age",xlab = "No of age", ylab =  "No of years", col = "Red", names.arg = Typical_Employee_SurveyData$Age)
+```
+
+```{r}
+## Q5)Plot scatter plots to show few relationships
+plot(Typical_Employee_SurveyData$Age, Typical_Employee_SurveyData$WorkEx, main="Scatter Plot", xlab="Age", ylab="WorkEx")
+plot(Typical_Employee_SurveyData$Age, Typical_Employee_SurveyData$Gender, main="Scatter Plot", xlab="Age", ylab="Gender")
+plot(Typical_Employee_SurveyData$Age, Typical_Employee_SurveyData$Job_Satisfaction, main="Scatter Plot", xlab="Age", ylab="Job_Satisfaction")
+plot(Typical_Employee_SurveyData$Promotion, Typical_Employee_SurveyData$WorkEx, main="Scatter Plot", xlab="Promotion", ylab="WorkEx")
+
+```
+
