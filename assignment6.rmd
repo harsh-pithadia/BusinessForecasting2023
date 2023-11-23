@@ -1,0 +1,95 @@
+---
+author: "hp621@scaretletmail.rutgers.edu"
+title: "Assignment 6"
+output: html_document
+date: "11-20-23"
+---
+
+# Assignment 6_ARIMA Model
+
+```{r}
+# Adding libraries
+library(fpp)
+library(fpp2)
+library(forecast)
+library(readxl)
+```
+
+```{r}
+
+#import the data set
+
+HH_NatrualGAS <- read_excel("C:/Users/HARSH/Desktop/RU/BF/assignment4/HH_NatrualGAS.xlsx")
+View(HH_NatrualGAS)
+```
+
+
+```{r}
+#Check your dataset in time series
+head(HH_NatrualGAS)
+plot(HH_NatrualGAS)
+
+summary(HH_NatrualGAS)
+
+
+ts_data <- ts(HH_NatrualGAS$Price, start = c(1997, 01),end = c(2020,12), frequency = 12)
+
+
+```
+
+```{r}
+#Check out the number of differences in time series data set 
+##Also ploting  a time series along with its ACF and either its PACF, lagged scatterplot or spectrum
+ndiffs(ts_data)
+tsdisplay(ts_data)
+```
+
+```{r}
+#Ploting out the ts data differencce
+ts_datadiff1 <- diff(ts_data, differences=1)
+plot(ts_datadiff1)
+```
+
+```{r}
+#Find out the best ARIMA Model for the time series data set 
+auto_fit <- auto.arima(ts_data, trace=TRUE, stepwise = FALSE, approximation = FALSE)
+# Best model: ARIMA(1,1,1)(0,0,2)[12]  
+##633.1583
+
+auto_fit
+
+attributes(auto_fit)
+```
+```{r}
+#Residual analysis
+checkresiduals(auto_fit)
+Acf(auto_fit$residuals)
+
+plot.ts(residuals(auto_fit))
+hist(auto_fit$residuals)
+tsdiag(auto_fit)
+
+```
+
+```{r}
+#Forecast for next 5 years
+ fcast <- forecast(auto_fit,h=5,level=c(99.5))
+plot(fcast)
+
+plot(ts_data)
+lines(fcast$fitted,col="red")
+
+```
+
+```{r}
+#Accuracy of ARIMA model
+accuracy(fcast)
+
+## The ME is approximately -0.003, which suggests a small bias in the predictions.
+##The smaller the RMSE, the better the model's performance. In this case, the RMSE is approximately 0.714
+##The MAE It measures the average magnitude of the errors without considering their direction. In this case, the MAE is approximately 0.456.
+##Mean Percentage Error is approx 1% that states the very slightly errors in the model
+## The MAPE is approximately 10.306%, indicating that, on average, the model's predictions deviate by about 10.306% from the actual values
+##The MASE is approximately 0.318, suggesting a relatively good fit
+```
+
