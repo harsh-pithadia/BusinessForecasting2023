@@ -1,0 +1,252 @@
+---
+title: "Harsh Pithadia_midterm"
+author: "hp621@scarletmail.rutgers.edu"
+date: "11/06/2022"
+output: html_document
+---
+
+
+The data set is about US public transit ridership refers to the number of people who use public transportation services,such as buses, trains, subways, trams, and other forms of mass transit, to travel from one place to another.It is from 2000 Jan.
+
+```{r}
+##Importing the CSV data  
+library(readr)
+Transit <- read.csv("C://Users//HARSH//Desktop//RU//BF//midterm//TRANSIT.csv")
+View(Transit)
+
+class(Transit)
+
+#plot the time series graph
+Transit_Raw <- Transit$TRANSIT
+Transit_ts <- ts(Transit_Raw, frequency = 12, start = c(2000,1))
+plot(Transit_ts,main = "Timeseries", col = "blue")
+
+```
+```{r}
+#• Please summaries your observations of the times series plot                  
+# we observe that the data from 2000-01 to 2020-01 has a steady trend of rise and fall due the recession and Covid19
+#  There is a major fall from 2019 till 2020 as the public transport usage was decline up till the Covid numbers decreased 
+# thus we will choose the subset of data from 2020 on wards.
+# it can observed that there is an upward trend(positive) in the plot after 2020
+```
+
+
+
+
+
+```{r}
+#central tendency
+min(Transit_ts)
+max(Transit_ts)
+mean(Transit_ts)
+median(Transit_ts)
+summary(Transit_ts)
+boxplot(Transit_ts)
+
+```
+
+```{r}
+##The minimum value in the time series is 171,450 and The maximum value in the time series is 993,437.
+##1st Quartile (1st Qu.): The 25th percentile value (1st quartile) is 772,502, indicating that 25% of the data points are below this value.3rd Quartile (3rd Qu.): The 75th percentile value (3rd quartile) is 866,164, meaning that 75% of the data points fall below this value.
+##Median:The median value, which is the middle point of the time series, is 824,766.
+##Mean: The mean value for the time series is approximately 779,435.
+##Over the box plot we can see there are outliers present at the bottom of the graph.Certainly, here is a summary of the key points regarding the box plot analysis:
+##- The box represents the Interquartile Range (IQR), with the whiskers extending to the minimum and maximum values within a certain range.
+##- Any outliers, if present, are shown as individual points located outside the whiskers.
+-## The central box, situated between the 1st Quartile (Q1) and the 3rd Quartile (Q3), contains the majority of the data points.
+##- The line inside the box represents the median, which indicates the middle point of the time series.
+-## These analysis provide insights into the central tendency, spread, skewness, and the presence of outliers in your time series data. Interpretations may vary based on the actual summary statistics and the specific characteristics of the box plot generated for your dataset.
+```
+
+
+```{r}
+#Decomposition
+
+
+##Library used for Decompoistion
+library(fpp)
+library(fpp2)
+
+
+head(Transit_ts)
+#perform seasonal decomposition STL
+stl_decomp <- stl(Transit_ts,s.window ="periodic")
+#plot the decomposed components
+plot(stl_decomp)
+#print attributes of the decomposition
+attributes(stl_decomp)
+
+# Lets print out a seasonal adjustment
+seasadj(stl_decomp)
+# Plot a line on the graph
+plot(Transit_ts)
+lines(seasadj(stl_decomp), col="Red")
+# Default period forecast
+f_stl <- forecast(stl_decomp)
+# you can pass the # of period
+f_stl <- forecast(stl_decomp,h=15)
+f_stl
+plot(f_stl)
+
+```
+
+```{r}
+##The times series is seasonal
+##The decomposition is additive
+##If seasonal, what are the values of the seasonal monthly indices?
+##OCT 2007 month is the value of time series high and for which JAN 2020 month is low.
+##The reason behind the value being high in those months are as it the festive season coming up people travel with more public transport and low in those months is because COvid was on the peak and all the public transport had to stop working due to safety purpose.
+##
+
+```
+
+
+```{r}
+#Naïve Method
+#Naive Forecast
+naive_forecast <- naive(Transit_ts,5)
+plot(naive_forecast)
+#Perform residual Analysis
+plot(naive_forecast$residuals, xlab = "Time", ylab = "Residuals", main = "Residual Plot for Naive Method")
+hist(naive_forecast$residuals, main = "Histogram of Residuals for Naive Method")
+plot(naive_forecast$fitted, naive_forecast$residuals, xlab = "Fitted Values", ylab = "Residuals", main = "Fitted vs. Residuals for Naive Method")
+plot(Transit_ts, naive_forecast$residuals, xlab = "Actual Values", ylab = "Residuals", main = "Actual vs. Residuals for Naive Method")
+Acf(naive_forecast$residuals, main = "ACF Plot of Residuals for Naive Method")
+accuracy(naive_forecast)
+
+naive_forecast1 <- forecast(naive_forecast,20)
+naive_forecast
+accuracy(naive_forecast1)
+plot(naive_forecast1)
+
+```
+
+
+
+
+```{r}
+#Simple Moving Averages
+MA3_forecast <- ma(Transit_ts,order = 3)
+MA6_forecast <- ma(Transit_ts,order=6)
+MA9_forecast <- ma(Transit_ts,order=9)
+plot(MA3_forecast)
+lines(MA3_forecast,col="red")
+plot(MA6_forecast)
+lines(MA6_forecast,col="blue")
+plot(MA9_forecast)
+lines(MA9_forecast,col="green")
+maf <- ma(Transit_ts,12)
+plot(maf)
+lines(MA3_forecast, col="yellow")
+
+
+```
+```{r}
+##Moving average forecast lies on the same point for the different forecast
+```
+
+
+
+```{r}
+#Simple Smoothing
+smoothing_fc <- ses(Transit_ts)
+plot(smoothing_fc)
+attributes(smoothing_fc)
+plot(smoothing_fc$residuals)
+hist(smoothing_fc$residuals)
+Acf(smoothing_fc$residuals)
+accuracy(smoothing_fc)
+forecast(smoothing_fc)
+plot(forecast(smoothing_fc))
+
+
+```
+
+```{r}
+#VAlue of alpha
+smoothing_fc$alpha 
+#alpha
+smoothing_fc$states
+#sigma
+smoothing_fc$sigma
+
+# Extract the residuals from the SES forecast
+residuals_ses <- smoothing_fc$residuals
+
+# Plot of Residuals
+plot(residuals_ses, xlab = "Time", ylab = "Residuals", main = "Residual Plot for Simple Exponential Smoothing (SES) Forecast")
+
+# Histogram of Residuals
+hist(residuals_ses, main = "Histogram of Residuals for Simple Exponential Smoothing (SES) Forecast")
+
+# Plot of Fitted Values vs. Residuals
+plot(smoothing_fc$fitted, residuals_ses, xlab = "Fitted Values", ylab = "Residuals", main = "Fitted vs. Residuals for SES Forecast")
+
+# Plot of Actual Values vs. Residuals
+plot(Transit_ts, residuals_ses, xlab = "Actual Values", ylab = "Residuals", main = "Actual vs. Residuals for SES Forecast")
+
+# ACF Plot of Residuals
+Acf(residuals_ses, main = "ACF Plot of Residuals for Simple Exponential Smoothing (SES) Forecast")
+
+# Print the 5 measures of accuracy
+accuracy(smoothing_fc)
+
+# Forecast for the Next Year
+forecast_values <- smoothing_fc$mean
+
+# Summarize the Forecasting Technique
+cat("Simple Exponential Smoothing (SES) Forecast Summary:\n")
+cat("Accuracy Assessment:\n")
+cat("The accuracy of the SES forecast is provided through the measures of accuracy above.\n")
+cat("Forecast for the Next Year:\n")
+cat("The forecasted values for the next year:\n")
+print(forecast_values)
+
+```
+
+
+
+```{r}
+#Holt-Winters
+
+HW_forecast <- HoltWinters(Transit_ts)
+plot(HW_forecast)
+SSE_Simple <- HoltWinters(Transit_ts,beta=TRUE,gamma=TRUE)
+attributes(SSE_Simple)
+plot(SSE_Simple)
+SSE_Simple$SSE
+head(SSE_Simple$fitted)
+
+
+HW_forecast$intial
+HW_forecast$sigma
+```
+
+```{r}
+HW_forecast$alpha
+HW_forecast$gamma
+HW_forecast$beta
+
+##value of alpha is 0.9284877,alpha signifies the smoothing component of the time series
+## value of beta  ,beta trend component of the time series
+## Value of gamma ,gamma trend component of the time series 
+##The value of initial states for the level, trend and seasonality is NULL.What do these values signify?
+##the value of sigma is NULL.The sigma signify
+```
+
+
+
+```{r}
+##Accuracy Summary
+accuracy(naive_forecast)
+accuracy(smoothing_fc)
+accuracy(SSE_Simple)
+
+```
+
+
+```{r}
+##Conclusion
+##Naive is worst and simple smoothing is best
+```
+

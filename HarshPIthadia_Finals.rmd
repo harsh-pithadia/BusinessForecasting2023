@@ -1,0 +1,596 @@
+---
+title: "Harsh Pithadia_Final"
+author: "hp621@scarletmail.rutgers.edu"
+date: "12/04/2023"
+output: html_document
+---
+
+```{r}
+#Importing library
+library(fpp)
+library(fpp2)
+library(ggplot2)
+library(xts)
+library(forecast)
+
+# Used to convert scientific numbers into normal numeric numbers
+options(scipen = 999)
+```
+#Introduction
+##Yahoo Finance is a comprehensive financial platform provided by Yahoo that offers a wide range of information related to the financial markets. It covers various aspects, including stock prices, market news, company profiles, financial statements, and commodity prices, such as gold. The platform is widely used by investors, traders, and individuals interested in staying informed about the latest developments in the financial world. Users can access real-time data, historical charts, and other tools to analyze and track the performance of different assets. Yahoo Finance aims to provide a user-friendly interface for individuals to make informed decisions about their investments and stay updated on market trends. In this case, we consider the monthly closing Gold Prices over the past 5 years.
+
+##Import the data
+```{r}
+library(readr)
+GOLD <- read_csv("C://Users//HARSH//Desktop//RU//BF//finals//GLD_Final.csv")
+
+View(GOLD)
+```
+
+## Plot and Inference
+```{r}
+Gold_Raw <- GOLD$Close
+Gold_ts <- ts(Gold_Raw, frequency = 12, start = c(2018,12))
+plot(Gold_ts,main = "Timeseries")
+```
+* We can see that before 2020 March the value of the gold was less than 150and till 2023 it has reached to 180
+*In such cases, we consider a window function. In this case, we can consider it from 2020 Jan.
+
+
+
+#### Show a time series plot
+
+```{r}
+Gold_win <- window(Gold_ts, start = c(2020,03))
+plot(Gold_win)
+```
+
+#### Please summaries your observations of the times series plot
+
+* We can see that from March 2020 the price of gold started to increase rapidly 
+* Yearly the price of gold was increasing and decreasing but from 2022 Feb the prices got drop till Nov and there was rise again from that period 
+* The current value of gold is found to be maximum compared to last 5 years
+
+## Central Tendency
+
+#### What are the min, max, mean, median, 1st and 3rd Quartile values of the times series?
+```{r}
+summary(Gold_win)
+```
+#### Show the box plot
+```{r}
+boxplot(Gold_win, main = "Box Plot of Gold Data (from Mar 2020)")
+hist(Gold_win, main = "Histogram of Gold Data (from Mar 2020)")
+Acf(Gold_win, main = "Acf of Gold Data (from  Mar 2020)")
+```
+
+#### Can you summarize your observation about the time series from the summary stats and box plot?
+* The boxplot shows that there are no outliers in the data.
+* The Median is more towards the first quartile
+* From summary, we can also see that the median value is less than the mean for the time series.
+* This means that the data is nt a normal distribution. This can be justified seeing the histogram above as well.
+* From the ACF plot, we can see that many of the values crossed the confidence intervals, stating there is a trend component in the data.
+* Also, we can see that the lag period, the ACF plot is dipping into the negative values stating seasonality also exists in the data.
+
+
+
+## Decomposition
+
+#### Plot the decomposition of the time series
+```{r}
+stl_decomp <- stl(Gold_win,s.window ="periodic")
+plot(stl_decomp, main = 'Decomposition plot')
+```
+#### Is the times series seasonal?
+
+* Yes, the times series has a seasonal component.
+
+#### Is the decomposition additive or multiplicative?
+```{r}
+decom <- decompose(Gold_win)
+decom$type
+```
+* The decomposition is additive. 
+* Because, with as trend increases, we do not see any increase in the seasonality. The seasonality appears to be the same throughout.
+
+#### If seasonal, what are the values of the seasonal monthly indices?
+```{r}
+decom$figure
+```
+#### For which month is the value of time series high and for which month is it low?
+
+* The time series values have high values in the month of March and the lowest in the month of September .
+
+
+#### Can you think of the reason behind the value being high in those months and low in those months?
+* March is the closing month for the financial sectors the most income tax file are completed in this month that can be major reason the close rate to be high
+*September in US is start of begining of the schools and academics people are mostly invseted to get new tech or get back to school this might be a reason.
+
+
+
+#### Show the plot for time series adjusted for seasonality. Overlay this with the line for actual time series? Does seasonality have big fluctuations to the value of time series?
+
+```{r}
+plot(Gold_win)
+lines(seasadj(stl_decomp), main = "Seasonally adjusted plot", col="Red")
+```
+* Yes, seasonality shows a good amount of fluctuations to the value of time series.
+
+## Naive Method
+
+#### Output
+```{r}
+Gold_naive = naive(Gold_win)
+plot(Gold_naive, main = "Naive Forecast")
+```
+#### Perform Residual Analysis for this technique.
+
+###### Do a plot of residuals. What does the plot indicate?
+```{r}
+plot(Gold_naive$residuals, main = "Naive forecast residuals plot")
+
+```
+* The residuals appear to have seasonality.
+* Ideally, there shouldn't have any trend, pattern, or seasonality.
+* We can test this hypothesis in the coming tests.
+
+###### Do a Histogram plot of residuals. What does the plot indicate?
+```{r}
+hist(Gold_naive$residuals, main ='Histogram of Residuals')
+```
+* Should follow a normal distribution in an ideal case.
+* The histogram does not appears to be normally distributed. One bar has more frequency which disturbs the normal distribution
+* The values do not have a mean zero. The histogram appears to be skewed on left side.
+
+###### Do a plot of fitted values vs. residuals. What does the plot indicate?
+```{r}
+cbind(Fitted = fitted(Gold_naive),
+      Residuals=residuals(Gold_naive)) %>%
+  as.data.frame() %>%
+  ggplot(aes(x=Fitted, y=Residuals)) + geom_point()
+```
+* The Fitted vs Residuals plot appears to have a random shape.The dots are far from each other which represents low correlation 
+* Also in the errors which means that the variance of the residuals may not be constant.
+
+
+###### Do a plot of actual values vs. residuals. What does the plot indicate?
+
+
+```{r}
+cbind(Actual = Gold_win,
+      Residuals=residuals(Gold_naive)) %>%
+  as.data.frame() %>%
+  ggplot(aes(x=Actual, y=Residuals)) + geom_point()
+```
+
+* Similar to the previous plot, The actual vs Residuals plot also appears  to be random.The most plots are on the 170 value 
+
+###### Do an ACF plot of the residuals? What does this plot indicate?
+```{r}
+Acf(Gold_naive$residuals, main = "ACF of Naive residuals")
+```
+* Values of the ACF have crossed the confidence level meaning there is a trend in the residuals and we have missed some variable in our forecast.
+* Meaning that naive forecast is missing some main variables which we have missed our consideration for the forecast.
+
+## Print the 5 measures of accuracy for this forecasting technique
+```{r}
+naive_accuracy <- accuracy(Gold_naive)
+naive_accuracy
+```
+
+
+### Forecast
+###### Time series value for next year. Show table and plot
+```{r}
+forecast(Gold_win)
+plot(forecast(Gold_win))
+```
+
+
+#### Summarize this forecasting technique
+
+###### How good is the accuracy?
+* The ME, RMSE values are very high indicating that this method may not be the right one to go with.It should be close to 0 
+
+
+###### What does it predict the value of time series will be in one year?
+Nov 2024- 188.1347
+###### Other observation
+* The data exhibits a discernible upward trend, making simple smoothing forecasts less suitable. 
+* Exploring alternative forecasting methods is advisable, evaluating their performance based on lower error values compared to simple smoothing.
+
+## Simple Moving Averages
+
+#### Plot the graph for time series
+#### Show the Simple Moving average of order 3 on the plot above in Red
+#### Show the Simple Moving average of order 6 on the plot above in Blue
+#### Show the Simple Moving average of order 9 on the plot above in Green
+```{r}
+mavg3_forecast = ma(Gold_win,order=3)
+mavg6_forecast = ma(Gold_win,order=6)
+mavg9_forecast = ma(Gold_win,order=9) 
+plot(Gold_win, main = "Plot along with moving averages")
+lines(mavg3_forecast, col="Red")
+lines(mavg6_forecast, col="Blue")
+lines(mavg9_forecast, col="Green")
+```
+* The Red line (order 3) gives the most real data compared to the other two. The higher order averages smoother the plot and do not give the actual values.
+
+#### (Bonus) show the forecast of next 12 months using one of the simple average order that you feel works best for time series
+```{r}
+MA3_forecast <- forecast(mavg3_forecast, h = 12)
+plot(MA3_forecast)
+```
+#### What are your observations of the plot as the moving average order goes up?
+* Red(order 3) is compared to be more aaccurate to the real data than other two 
+* The higher order averages smoother the plot and do not give the actual values.
+
+
+
+## Simple Smoothing
+
+#### Perform a simple smoothing forecast for next 12 months for the time series.
+```{r}
+ses_data <- ses(Gold_win)
+plot(ses_data)
+```
+###### What is the value of alpha? What does that value signify?
+###### What is the value of initial state?
+###### What is the value of sigma? What does the sigma signify?
+'
+```{r}
+summary(ses_data)
+```
+ * alpha = 0.8957
+ * In time series forecasting, the smoothing parameter alpha determines the weight assigned to the latest observation in the level component. A higher alpha value, closer to 1.0, indicates a greater emphasis on the most recent data point in updating the level, influencing the forecast
+ *Initial states:
+    l = 149.2253 
+ * Sigma:  7.5383
+ * Sigma defines the variance in the forecast predicted it represents the standard deviation of the error term, influencing the level of variability considered in the smoothing model. The optimal sigma value should be chosen based on the characteristics of the data, with higher values accommodating greater uncertainty or variability.
+ 
+ 
+##### Perform Residual Analysis for this technique
+
+###### Do a plot of residuals. What does the plot indicate?
+
+```{r}
+plot(ses_data$residuals, main = "Simple Smoothing forecast residuals plot")
+```
+
+ * The residuals appear to have seasonality.
+* Ideally, there shouldn't have any trend, pattern, or seasonality.
+* We can test this hypothesis in the coming tests.
+
+###### Do a Histogram plot of residuals. What does the plot indicate?
+```{r}
+hist(ses_data$residuals, main ='Histogram of Residuals')
+```
+* Should follow a normal distribution in an ideal case.
+* The histogram does not appears to be normally distributed. One bar has more frequency which disturbs the normal distribution
+* The values do not have a mean zero. The histogram appears to be skewed on left side.
+
+
+
+###### Do a plot of fitted values vs. residuals. What does the plot indicate?
+```{r}
+cbind(Fitted = fitted(ses_data),
+      Residuals=residuals(ses_data)) %>%
+  as.data.frame() %>%
+  ggplot(aes(x=Fitted, y=Residuals)) + geom_point()
+```
+* The Fitted vs Residuals plot appears to have a random shape.
+
+```{r}
+cbind(Actual = Gold_win,
+      Residuals=residuals(ses_data)) %>%
+  as.data.frame() %>%
+  ggplot(aes(x=Actual, y=Residuals)) + geom_point()
+```
+
+* Similar to the previous plot, The actual vs Residuals plot also appears to be randomly . 
+
+###### Do an ACF plot of the residuals? What does this plot indicate?
+```{r}
+Acf(ses_data$residuals, main = "ACF of Simple Smoothing residuals")
+```
+* Values of the Acf have crossed the confidence level meaning there is a trend in the residuals and we have missed some variable in our forecast.
+* The Acf values also show seasonality in the plot and we missed this variable too.
+* Meaning that simple smoothing forecast is missing some main variables which we have missed our consideration for the forecast.
+
+## Print the 5 measures of accuracy for this forecasting technique
+
+```{r}
+ses_accuracy <- accuracy(ses_data)
+ses_accuracy
+```
+
+### Forecast
+
+###### Time series value for next year. Show table and plot
+
+```{r}
+forecast(ses_data)
+plot(forecast(ses_data))
+```
+#### Summarize this forecasting technique
+
+###### How good is the accuracy?
+
+* The ME, RMSE values are very high indicating that this method may not be the right one to go with.
+
+###### What does it predict the value of time series will be in one year?
+
+* Sep 2024- 188.1361
+
+###### Other observation
+
+* The data exhibits a discernible upward trend, making simple smoothing forecasts less suitable. 
+* Exploring alternative forecasting methods is advisable, evaluating their performance based on lower error values compared to simple smoothing.
+
+## HoltWinters
+#### Perform Holt-Winters forecast for next 12 months for the time series.
+
+```{r}
+HW_forecast <- hw(Gold_win, seasonal = "additive")
+plot(forecast(HW_forecast))
+attributes(HW_forecast)
+hw_add <- forecast(HW_forecast)
+```
+* Here, additive Holtwinters method is considered.
+* The absence of an increasing trend in seasonality indicates an additive time series nature, as the seasonal patterns are not compounding with the trend.
+
+###### What is the value of alpha? What does that value signify?
+###### What is the value of beta? What does that value signify?
+###### What is the value of gamma? What does that value signify?
+###### What is the value of initial states for the level, trend and seasonality? What do these values signify?
+###### What is the value of sigma? What does the sigma signify?
+```{r}
+hw_add$model
+```
+* Alpha = 0.9058 . Alpha specifies the coefficient for the level smoothing in HoltWinters.
+* Beta = 0.0002. Beta specifies the coefficient for the trend smoothing in HoltWinters. 
+* Gamma = 0.0001. Gamma specifies the coefficient for the seasonal smoothing in HoltWinters.
+* Values 1.0 means that the latest value has highest weight.
+*  Initial states:
+    l = 167.6261 
+    b = 0.4632 
+    s = -2.1684 1.4705 2.0528 -5.1915 -5.0245 -4.9942
+           1.0415 1.8817 0.567 7.1953 5.402 -2.2321
+* sigma:  8.8842. Sigma defines the variance of the forecast values.
+
+#### Perform Residual Analysis for this technique.
+
+###### Do a plot of residuals. What does the plot indicate?
+
+```{r}
+plot(hw_add$residuals, main = "Holt Winters forecast residuals plot")
+```
+* The residuals appear to be random.
+* The residuals seem to have a mean at zero.
+* HoltWinters seems to be the best forecast comparing to the others.
+* We can test this hypothesis in the coming tests.
+
+
+###### Do a Histogram plot of residuals. What does the plot indicate?
+
+```{r}
+hist(hw_add$residuals, main ='Histogram of Residuals')
+```
+* The histogram does appears to be random not normally distributed.
+* The values do not have a mean zero.
+
+###### Do a plot of fitted values vs. residuals. What does the plot indicate?
+```{r}
+cbind(Fitted = fitted(hw_add),
+      Residuals=residuals(hw_add)) %>%
+  as.data.frame() %>%
+  ggplot(aes(x=Fitted, y=Residuals)) + geom_point()
+```
+
+
+###### Do a plot of actual values vs. residuals. What does the plot indicate?
+
+```{r}
+cbind(Actual = Gold_win,
+      Residuals=residuals(hw_add)) %>%
+  as.data.frame() %>%
+  ggplot(aes(x=Actual, y=Residuals)) + geom_point()
+```
+###### Do an ACF plot of the residuals? What does this plot indicate?
+```{r}
+Acf(hw_add$residuals, main = "ACF of Holt Winters residuals")
+```
+* In the Acf plot, none of the values crossed the confidence levels. It appears to be white noice.
+* This signifies that the forecast is a good forecast.
+
+
+## Print the 5 measures of accuracy for this forecasting technique
+```{r}
+hw_accuracy <- accuracy(hw_add)
+hw_accuracy
+```
+
+
+### Forecast
+
+###### Time series value for next year. Show table and plot
+
+```{r}
+forecast(hw_add)
+plot(forecast(hw_add))
+```
+
+
+#### Summarize this forecasting technique
+
+###### How good is the accuracy?
+
+* The ME, RMSE values are quite low compared to any of our previous forecasts.
+* Holwinters is a better forecast compared to naive and simple smoothing.
+
+
+###### What does it predict the value of time series will be in one year?
+
+* 	Nov 2024 - 193.8026	
+
+###### Other observation
+
+* Holtwinters appears to be the better forecast considering all the previous forecast methods.
+* However, this forecast is not found to be best until we test ARIMA Model.
+
+##ARIMA MODEL
+####Is Time Series data Stationary? How did you verify?
+
+```{r}
+adf.test(Gold_win)
+kpss.test(Gold_win)
+```
+*Yes it is stationary 
+
+*ADF test says differences is required if p-value is > 0.05
+The null hypothesis of the ADF test is that the data is non-stationary. The p-value is compared to a significance level (commonly 0.05). In this case, the p-value is 0.2668, which is greater than 0.05.
+
+*Kipps test says differences is required if p-value is < 0.05
+The null hypothesis of the KPSS test is that the data is stationary around a deterministic trend. The p-value is compared to a significance level (commonly 0.05). In this case, the p-value is 0.1, which is greater than 0.05
+
+#### How many differences are needed to make it stationary?
+```{r}
+nsdiffs(Gold_win)
+
+```
+* The values are already stationary it does not need to do any data difference 
+
+####Is Seasonality component needed?
+*No
+
+####Plot the Time Series chart of the differenced series.
+####Plot the ACF and PACF plot of the differenced series.
+```{r}
+tsdisplay(Gold_win)
+```
+####Based on the ACF and PACF, which are the possible ARIMA model possible?
+
+```{r}
+#Find out the best ARIMA Model for the time series data set 
+auto_fit <- auto.arima(Gold_win, trace=TRUE, stepwise = FALSE, approximation = FALSE)
+```
+ *Best model: ARIMA(1,0,0)
+
+####Show the AIC, BIC and Sigma^2 for the possible models?
+####Based on the above AIC, BIC and Sigma^2 values, which model will you select?
+#### What is the final formula for ARIMA with the coefficients?
+```{r}
+auto_fit
+attributes(auto_fit)
+```
+*AIC=310.74
+*BIC=316.16
+*sigma^2 = 52.63
+*For an ARIMA(1,0,0) model with a non-zero mean, the formula would be:
+Y(t) =μ+ϕ(1)*Y(t−1)+ε(t)
+
+Y(t)is the observed time series at time t
+μ is the non-zero mean of the time series.
+ϕ (1)is the autoregressive coefficient for the first lag.
+Y(t−1)is the value of the time series at the previous time point.
+ε(t)is the white noise error term at time t.
+
+
+####Perform Residual Analysis for this technique.
+##### Do a plot of residuals. What does the plot indicate?
+```{r}
+plot(auto_fit$residuals, main = "ARIMAforecast residuals plot")
+```
+
+###### Do a Histogram plot of residuals. What does the plot indicate?
+```{r}
+hist(auto_fit$residuals, main ='Histogram of Residuals')
+```
+
+
+##### Do a plot of fitted values vs. residuals. What does the plot indicate?
+```{r}
+cbind(Fitted = fitted(auto_fit),
+      Residuals=residuals(auto_fit)) %>%
+  as.data.frame() %>%
+  ggplot(aes(x=Fitted, y=Residuals)) + geom_point()
+```
+
+##### Do a plot of actual values vs. residuals. What does the plot indicate?
+
+```{r}
+cbind(Actual = Gold_win,
+      Residuals=residuals(auto_fit)) %>%
+  as.data.frame() %>%
+  ggplot(aes(x=Actual, y=Residuals)) + geom_point()
+```
+
+##### Do an ACF plot of the residuals? What does this plot indicate?
+
+```{r}
+Acf(auto_fit$residuals, main = "ACF of ARIMA residuals")
+```
+* In the Acf plot, none of the values crossed the confidence levels. It appears to be white noice.
+* This signifies that the forecast is a good forecast.
+* This proves to be the best forecast comparing all the previous ones tested.
+
+####Print the 5 measures of accuracy for this forecasting technique.
+
+```{r}
+ARIMA_accuracy <- accuracy(auto_fit)
+ARIMA_accuracy
+```
+
+###Forecast
+#### Next one year. Show table and plot
+### Next two years. Show table and plot
+```{r}
+forecast(auto_fit)
+plot(forecast(auto_fit))
+```
+
+
+####Summarize this forecasting technique
+
+####How good is the accuracy?
+* The ME, RMSE values are quite low compared to any of our previous forecasts except Holt winters.
+* ARIMA is a better forecast compared to naive and simple smoothing.
+
+####What does it predict time series will be in one year and next two years?
+*Nov 2024	171.3742
+*Nov 2025	171.0179
+
+
+## Accuracy Summary
+
+#### Show a table of all the forecast method above with their accuracy measures
+```{r}
+accuracy_table <- data.frame(
+  Method = c("Naive", "Simple Smoothing", "Holt-Winters","ARIMA MODEL"),
+  ME = c(naive_accuracy[1, "ME"], ses_accuracy[1, "ME"], hw_accuracy[1, "ME"],ARIMA_accuracy[1, "ME"]),
+  MAE = c(naive_accuracy[1, "MAE"], ses_accuracy[1, "MAE"], hw_accuracy[1, "MAE"],ARIMA_accuracy[1, "MAE"]),
+  MASE = c(naive_accuracy[1, "MASE"], ses_accuracy[1, "MASE"], hw_accuracy[1, "MASE"],ARIMA_accuracy[1, "MASE"]),
+  RMSE = c(naive_accuracy[1, "RMSE"], ses_accuracy[1, "RMSE"], hw_accuracy[1, "RMSE"],ARIMA_accuracy[1, "RMSE"]),
+  MAPE = c(naive_accuracy[1, "MAPE"], ses_accuracy[1, "MAPE"], hw_accuracy[1, "MAPE"],ARIMA_accuracy[1, "MAPE"])
+)
+
+print(accuracy_table)
+```
+#### Show the best and worst forecast method for the accuracy measure of your choice. Why did you choose that accuracy measure?
+
+* Considering the accuracy data above, Holt Winters forecast seems to fit the time series the best as it has the least error values.
+* And Naive forecast seems to be the worst as it has the largest error values.
+
+## Conclusion
+
+#### Summarize your analysis of time series value over the time-period.
+
+* The data seemed to have trend and seasonality initially and we checked the same with Acf and confirmed it.
+* Based on the three forecasting methods naive, simple smoothing, and HoltWinters, we can see that HoltWinters forecast provides to be the better forecasting method in this case.
+* This is because the forecast fits perfectly and also the error values are quiet low for HoltWinters forecast.
+* Additionally residuals in HoltWinters appear to be random and the all the ACF values of residuals are within the confidence interval.
+
+#### Based on your analysis and forecast above, do you think the value of the time series will increase, decrease or stay flat over the next year? How about next 2 years?
+
+* Based on the analysis and forecast, the time series will increase over the next year and the next 2 years.
+
